@@ -1,0 +1,24 @@
+Package: blogify
+Type: Package
+Title: Reproducible blogs from R markdown
+Version: 0.0.1
+Date: 2012-12-12
+Author: Ramnath Vaidyanathan <ramnath.vaidya@gmail.com>
+Maintainer: Ramnath Vaidyanathan <ramnath.vaidya@gmail.com>
+Description: This package provides a tool to generate reproducible blogs
+    from R Markdown files.
+Depends:
+    R (>= 2.15.0)
+Imports:
+    knitr,
+    markdown,
+    slidify,
+    stringr,
+    yaml,
+    whisker
+License: MIT
+URL: http://ramnathv.github.com/blogify/
+BugReports: https://github.com/ramnathv/blogify/issues
+Collate:
+    'blogify.R'
+    'utils.R'
