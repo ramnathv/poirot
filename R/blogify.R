@@ -13,13 +13,14 @@ blogify <- function(postDir){
 }
 
 parse_post <- function(inputFile){
-  knitr::opts_knit$set(fig.path = "assets/fig/")
+  opts_chunk$set(fig.path = "assets/fig/", cache.path = '.cache/', cache = TRUE)
   post = inputFile %|% knit %|% parse_deck
   post$file = inputFile
   if (!is.null(post$date)) {
     post$date = as.Date(post$date, '%Y-%m-%d')
   }
   post$link = gsub("*.Rmd", ".html", post$file)
+  post$raw = slidify:::read_file(inputFile)
   return(post)
 }
 
