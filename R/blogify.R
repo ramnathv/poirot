@@ -1,14 +1,14 @@
 pagify <- function(postFile){
   page = blogify:::parse_post(postFile)
   site = yaml.load_file('site.yml')
-  slidify:::render_page(page, payload = list(site = site))
+  render_page(page, payload = list(site = site))
 }
 
 blogify <- function(postDir){
   postFiles = dir(postDir, pattern = '*.Rmd', full = TRUE)
   pages = lapply(postFiles, blogify:::parse_post)
   site  = yaml.load_file('site.yml')
-  slidify:::render_pages(site, pages)
+  render_pages(site, pages)
 }
 
 blogify <- function(postDir){
