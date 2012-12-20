@@ -1,36 +1,21 @@
 pagify <- function(postFile){
   page = blogify:::parse_post(postFile)
-  site = yaml.load_file('site.yml')
-  render_page(page, payload = list(site = site))
+  if (file.exists('site.yml')){
+    site = yaml.load_file('site.yml')
+  } else {
+    site = list(x = 10)
+  }
+  slidify:::render_page(page, payload = list(site = site))
 }
 
 blogify <- function(postDir){
-  postFiles = dir(postDir, pattern = '*.Rmd', full = TRUE)
-  pages = lapply(postFiles, blogify:::parse_post)
   site  = yaml.load_file('site.yml')
-  render_pages(site, pages)
-}
-
-blogify <- function(postDir){
-  postFiles = dir(postDir, pattern = '*.Rmd', full = TRUE)
-  posts = lapply(postFiles, parse_post)
-  tags = get_pages_by_groups(posts, 'tags')
-  
-  # Render all posts ----
-  invisible(lapply(posts, function(post){
-    post$site = modifyList(post$site, list(
-      tags = tags, 
-      posts = lapply(posts, "[", c('title', 'link', 'file', 'date'))
-    ))
-    render_post(post)
-  }))
-  
-  # Extract R code from posts if any chunks present ---   
-  invisible(lapply(postFiles, function(file){
-    if (any(grep("^```\\{r", readLines(file)))){
-      purl(file)
-    }
-  }))
+  cwd   = getwd(); on.exit(setwd(cwd))
+  setwd(postDir)
+  postFiles = dir(".", pattern = '*.Rmd', full = TRUE)
+  pages = lapply(postFiles, parse_post)
+  tags = get_pages_by_groups(pages, 'tags')
+  slidify:::render_pages(pages, site, tags)
   message('Blogification Successful :-)')
 }
 
@@ -66,4 +51,28 @@ order_posts <- function(posts){
   d[order(as.Date(d$V3, format="%d/%m/%Y")),]
   x = order(unlist(lapply(posts, slidify:::pluck('date'))))
   posts[x]
+}
+
+# Old Blogify Function. TO DISCARD
+blogify0 <- function(postDir){
+  postFiles = dir(postDir, pattern = '*.Rmd', full = TRUE)
+  posts = lapply(postFiles, parse_post)
+  tags = get_pages_by_groups(posts, 'tags')
+  
+  # Render all posts ----
+  invisible(lapply(posts, function(post){
+    post$site = modifyList(post$site, list(
+      tags = tags, 
+      posts = lapply(posts, "[", c('title', 'link', 'file', 'date'))
+    ))
+    render_post(post)
+  }))
+  
+  # Extract R code from posts if any chunks present ---   
+  invisible(lapply(postFiles, function(file){
+    if (any(grep("^```\\{r", readLines(file)))){
+      purl(file)
+    }
+  }))
+  message('Blogification Successful :-)')
 }
