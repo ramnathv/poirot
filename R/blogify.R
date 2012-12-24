@@ -1,5 +1,5 @@
 pagify <- function(postFile){
-  page = blogify:::parse_post(postFile)
+  page = parse_post(postFile)
   if (file.exists('site.yml')){
     site = yaml.load_file('site.yml')
   } else {
