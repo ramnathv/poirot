@@ -1,36 +1,44 @@
 pagify <- function(postFile){
-  page = parse_post(postFile)
   if (file.exists('site.yml')){
     site = yaml.load_file('site.yml')
   } else {
     site = list(x = 10)
   }
-  slidify:::render_page(page, payload = list(site = site))
+  page = parse_post(postFile)
+  in_dir(dirname(postFile), {
+    slidify:::render_page(page, payload = list(site = site))
+  })
 }
 
-blogify <- function(postDir){
-  site  = yaml.load_file('site.yml')
+blogify <- function(blogDir = "."){
+  site = yaml.load_file('site.yml')
   cwd   = getwd(); on.exit(setwd(cwd))
-  setwd(postDir)
-  postFiles = dir(".", pattern = '*.Rmd', full = TRUE)
-  pages = lapply(postFiles, parse_post)
+  setwd(blogDir)
+  rmdFiles = dir(".", recursive = TRUE, pattern = '*.Rmd')
+  pages = lapply(rmdFiles, parse_post)
   tags = get_pages_by_groups(pages, 'tags')
-  slidify:::render_pages(pages, site, tags)
+  payload = list(site = site, pages = pages, tags = tags)
+  invisible(lapply(pages, function(page){
+    in_dir(dirname(page$file), 
+      slidify:::render_page(page = page, payload = payload))
+  }))
   message('Blogification Successful :-)')
 }
 
-parse_post <- function(inputFile){
-  opts_chunk$set(fig.path = "assets/fig/", cache.path = '.cache/', cache = TRUE)
-  outputFile <- gsub(".Rmd", ".md", inputFile)
-  post = knit(inputFile, outputFile) %|% parse_deck
-  # post = inputFile %|% knit %|% parse_deck
-  post$file = inputFile
-  post$filename = tools:::file_path_sans_ext(inputFile)
-  if (!is.null(post$date)) {
-    post$date = as.Date(post$date, '%Y-%m-%d')
-  }
-  post$link = gsub("*.Rmd", ".html", post$file)
-  post$raw = slidify:::read_file(inputFile)
+parse_post <- function(postFile){
+  in_dir(dirname(postFile), {
+    inputFile = basename(postFile)
+    opts_chunk$set(fig.path = "assets/fig/", cache.path = '.cache/', cache = TRUE)
+    outputFile <- gsub(".Rmd", ".md", inputFile)
+    post = knit(inputFile, outputFile) %|% parse_deck
+    post$file = postFile
+    post$filename = tools:::file_path_sans_ext(inputFile)
+    if (!is.null(post$date)) {
+      post$date = as.Date(post$date, '%Y-%m-%d')
+    }
+    post$link = gsub("*.Rmd", ".html", post$file)
+    post$raw = read_file(inputFile)
+  })
   return(post)
 }
 
@@ -44,35 +52,14 @@ get_pages_by_groups <- function(pages, gby = 'tags'){
     g = lapply(pages, '[[', gby)
     Reduce('union', g)
   }
-  lapply(get_all_groups(), get_pages_by_group)
+  x  = lapply(get_all_groups(), get_pages_by_group)
+  y = setNames(x, lapply(x, pluck('name')))
+  y$all = x
+  y
 }
 
 order_posts <- function(posts){
   d[order(as.Date(d$V3, format="%d/%m/%Y")),]
-  x = order(unlist(lapply(posts, slidify:::pluck('date'))))
+  x = order(unlist(lapply(posts, pluck('date'))))
   posts[x]
-}
-
-# Old Blogify Function. TO DISCARD
-blogify0 <- function(postDir){
-  postFiles = dir(postDir, pattern = '*.Rmd', full = TRUE)
-  posts = lapply(postFiles, parse_post)
-  tags = get_pages_by_groups(posts, 'tags')
-  
-  # Render all posts ----
-  invisible(lapply(posts, function(post){
-    post$site = modifyList(post$site, list(
-      tags = tags, 
-      posts = lapply(posts, "[", c('title', 'link', 'file', 'date'))
-    ))
-    render_post(post)
-  }))
-  
-  # Extract R code from posts if any chunks present ---   
-  invisible(lapply(postFiles, function(file){
-    if (any(grep("^```\\{r", readLines(file)))){
-      purl(file)
-    }
-  }))
-  message('Blogification Successful :-)')
 }
