@@ -144,3 +144,11 @@ merge_list <- function (x, y, ...){
 filter_blank <- function(x){
   Filter(function(y) y != '', x)
 }
+
+#' Execute code in  specified directory
+#' 
+#' @noRd
+in_dir <- function(dir, expr) {
+  owd = setwd(dir); on.exit(setwd(owd))
+  force(expr)
+}
