@@ -2,12 +2,10 @@ pagify <- function(postFile){
   if (file.exists('site.yml')){
     site = yaml.load_file('site.yml')
   } else {
-    site = list(x = 10)
+    site = list()
   }
-  page = parse_post(postFile)
-  in_dir(dirname(postFile), {
-    slidify:::render_page(page, payload = list(site = site))
-  })
+  page = parse_page(postFile)
+  render_page(page, payload = list(site = site))
 }
 
 blogify <- function(blogDir = "."){
@@ -15,17 +13,13 @@ blogify <- function(blogDir = "."){
   cwd   = getwd(); on.exit(setwd(cwd))
   setwd(blogDir)
   rmdFiles = dir(".", recursive = TRUE, pattern = '*.Rmd')
-  pages = lapply(rmdFiles, parse_post)
-  tags = get_pages_by_groups(pages, 'tags')
-  payload = list(site = site, pages = pages, tags = tags)
-  invisible(lapply(pages, function(page){
-    in_dir(dirname(page$file), 
-      slidify:::render_page(page = page, payload = payload))
-  }))
+  pages = parse_pages(rmdFiles)
+  tags = get_tags(pages)
+  render_pages(pages, site, tags)
   message('Blogification Successful :-)')
 }
 
-parse_post <- function(postFile){
+parse_page <- function(postFile){
   in_dir(dirname(postFile), {
     inputFile = basename(postFile)
     opts_chunk$set(fig.path = "assets/fig/", cache.path = '.cache/', cache = TRUE)
@@ -42,6 +36,19 @@ parse_post <- function(postFile){
   return(post)
 }
 
+parse_pages <- function(postFiles){
+  lapply(postFiles, parse_page)
+}
+
+#' Get pages by tags
+get_tags <- function(pages){
+  get_pages_by_groups(pages, gby = 'tags')
+}
+
+get_categories <- function(pages){
+  get_pages_by_groups(pages, gby = 'categories')
+}
+
 get_pages_by_groups <- function(pages, gby = 'tags'){
   get_pages_by_group = function(g){
     p = pages[sapply(pages, function(page) g %in% page[[gby]])]
@@ -56,10 +63,4 @@ get_pages_by_groups <- function(pages, gby = 'tags'){
   y = setNames(x, lapply(x, pluck('name')))
   y$all = x
   y
-}
-
-order_posts <- function(posts){
-  d[order(as.Date(d$V3, format="%d/%m/%Y")),]
-  x = order(unlist(lapply(posts, pluck('date'))))
-  posts[x]
 }
