@@ -2,6 +2,12 @@
 
 [Poirot](http://github.com/ramnathv/blogify) is an elegant, blog aware, static site generator to create, manage and publish reproducible content using [R Markdown](http://www.r-project.org).
 
+Here is a sample blog generated using Poirot
+
+<a href="http://ramnathv.github.com/poirotBlog">
+  <img width='600px' src="http://i.imgur.com/R6hhT.png" title="Hosted by imgur.com" alt="" />
+</a>
+
 ---
 
 **Installing Poirot**
