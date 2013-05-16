@@ -1,3 +1,5 @@
+__Note__: Poirot shares a significant amount of codebase with Slidify. To ease development, I have integrated Poirot into the `dev` branch of Slidify. These will be ported back to Poirot once the code matures.
+
 # Poirot
 
 [Poirot](http://github.com/ramnathv/blogify) is an elegant, blog aware, static site generator to create, manage and publish websites with reproducible content using [R Markdown](http://www.r-project.org).
